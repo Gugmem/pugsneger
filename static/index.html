@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Множественные сообщения в Discord</title>
+  <style>
+    body {
+      background: #1e1e2f;
+      color: #fff;
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    .block {
+      background: #2c2f4a;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin: 5px 0;
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background: #7289da;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Отправка в Discord канал (Новости)</h1>
+  <form id="discordForm">
+    <div id="blocks">
+      <div class="block">
+        <input type="text" name="title" placeholder="Заголовок">
+        <textarea name="content" placeholder="Текст сообщения" rows="3"></textarea>
+        <input type="text" name="image" placeholder="URL картинки (опционально)">
+      </div>
+    </div>
+    <button type="button" onclick="addBlock()">➕ Добавить блок</button>
+    <br><br>
+    <button type="submit">🚀 Отправить в Discord</button>
+  </form>
+
+  <script>
+    function addBlock() {
+      const block = document.createElement('div');
+      block.className = 'block';
+      block.innerHTML = `
+        <input type="text" name="title" placeholder="Заголовок">
+        <textarea name="content" placeholder="Текст сообщения" rows="3"></textarea>
+        <input type="text" name="image" placeholder="URL картинки (опционально)">
+      `;
+      document.getElementById('blocks').appendChild(block);
+    }
+
+    document.getElementById('discordForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const blocks = document.querySelectorAll('.block');
+      const embeds = [];
+
+      blocks.forEach(block => {
+        const title = block.querySelector('input[name="title"]').value;
+        const content = block.querySelector('textarea[name="content"]').value;
+        const image = block.querySelector('input[name="image"]').value;
+
+        const embed = {
+          title: title || undefined,
+          description: content || undefined,
+          color: 0x5865F2
+        };
+        if (image) embed.image = { url: image };
+
+        embeds.push(embed);
+      });
+
+      const res = await fetch('http://127.0.0.1:5000/post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ embeds })
+      });
+
+      const result = await res.json();
+      alert(result.status === 'ok' ? "Успешно отправлено!" : "Ошибка: " + result.details);
+    };
+  </script>
+</body>
+</html>
